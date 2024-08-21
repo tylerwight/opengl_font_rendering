@@ -82,28 +82,30 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 void RenderText(GLuint shaderProgram, const char* text, float x, float y, float scale, float color[3]) {
-    glUseProgram(shaderProgram);
+    glUseProgram(shaderProgram); // select which shader program to render with
     mat4 projection;
-    glm_ortho(0.0f, resolution_x, 0.0f, resolution_y, -1.0f, 1.0f, projection);
+    glm_ortho(0.0f, resolution_x, 0.0f, resolution_y, -1.0f, 1.0f, projection); // generate a projection matrix related to the resolution of the screen. This is so you can use actual coordinates instead of 0.0f-1.0f in default opengl. In this case the coords are 0-1024 and 0-768
     GLuint projLoc = glGetUniformLocation(shaderProgram, "projection");
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, (float*)projection);
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, (float*)projection); // send this projection to the shader program (in the gpu)so it can be used as it renders
 
-    GLint textColorLocation = glGetUniformLocation(shaderProgram, "textColor");
-    glUniform3f(textColorLocation, color[0], color[1], color[2]);
+    GLint textColorLocation = glGetUniformLocation(shaderProgram, "textColor"); 
+    glUniform3f(textColorLocation, color[0], color[1], color[2]);// send a uniform to shader program for color info
 
     glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(VAO);
+    glBindVertexArray(VAO); // bind to our one vertex array VAO (global variable)
 
-    for (const char* p = text; *p; p++) {
+    for (const char* p = text; *p; p++) { // loop through ever char in the text
         Character ch = Characters[*p];
-
+        //
+        //do some math to setup vertices, essentially we are setting up rectangles the rough size of each letter, and spaced apart correctly
+        // one character at a time.
         float xpos = x + ch.Bearing[0] * scale;
         float ypos = y - (ch.Size[1] - ch.Bearing[1]) * scale;
 
         float w = ch.Size[0] * scale;
         float h = ch.Size[1] * scale;
         //printf("letter = %c, xpos: %f, ypos: %f, w: %f, h: %f\n", *p, xpos, ypos, w, h);
-        float vertices[6][4] = {
+        float vertices[6][4] = { // verticies data for one letter
             { xpos,     ypos + h,   0.0f, 0.0f },            
             { xpos,     ypos,       0.0f, 1.0f },
             { xpos + w, ypos,       1.0f, 1.0f },
@@ -111,20 +113,21 @@ void RenderText(GLuint shaderProgram, const char* text, float x, float y, float 
             { xpos,     ypos + h,   0.0f, 0.0f },
             { xpos + w, ypos,       1.0f, 1.0f },
             { xpos + w, ypos + h,   1.0f, 0.0f }           
-        };
+        }; 
+
         //printf("letter = %c, textureID = %c\n", *p, ch.TextureID );
-        glBindTexture(GL_TEXTURE_2D, ch.TextureID);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, ch.TextureID);// bind the current texture to the texture ID of the character we are reading. This is from the array of Character structs we generated in load_fonts()
+        glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind to our one buffer VBO (global variable)
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // replace the data in our buffer with the data of this character 
+        glBindBuffer(GL_ARRAY_BUFFER, 0);// unbind
 
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawArrays(GL_TRIANGLES, 0, 6); // draw the letter data in our buffer. It is a rectangle, but has a texture attached that is a bitmap of a letter. This is why if you don't have alpha enabled it will just draw blank rectangles.
 
-        x += (ch.Advance >> 6) * scale;
+        x += (ch.Advance >> 6) * scale; // some special stuff about freetype idk, I believe it's moving us further to the right to prep for next letter
     }
 
-    glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindVertexArray(0); // unbind vertex array
+    glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
 }
 
 const char* load_shader_source(const char* file_path) {
