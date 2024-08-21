@@ -50,11 +50,11 @@ int main(){
     float color[3] = {0.0f, 1.0f, 1.0f};  // RGB color
 
     while (!glfwWindowShouldClose(window)){
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT); // clear screen
         RenderText(shaderProgram, text, x, y, scale, color);
         RenderText(shaderProgram, "a suh", 600.0f, 55.0f, scale, color);
 
-        glfwPollEvents();
+        glfwPollEvents(); // check for keypress stuff
         glfwSwapBuffers(window);
         
     }
@@ -82,7 +82,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 void RenderText(GLuint shaderProgram, const char* text, float x, float y, float scale, float color[3]) {
-    glUseProgram(shaderProgram); // select which shader program to render with
+    glUseProgram(shaderProgram); // select which shader program to render with, this is putting the shader in the GPU I believe
     mat4 projection;
     glm_ortho(0.0f, resolution_x, 0.0f, resolution_y, -1.0f, 1.0f, projection); // generate a projection matrix related to the resolution of the screen. This is so you can use actual coordinates instead of 0.0f-1.0f in default opengl. In this case the coords are 0-1024 and 0-768
     GLuint projLoc = glGetUniformLocation(shaderProgram, "projection");
@@ -118,7 +118,7 @@ void RenderText(GLuint shaderProgram, const char* text, float x, float y, float 
         //printf("letter = %c, textureID = %c\n", *p, ch.TextureID );
         glBindTexture(GL_TEXTURE_2D, ch.TextureID);// bind the current texture to the texture ID of the character we are reading. This is from the array of Character structs we generated in load_fonts()
         glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind to our one buffer VBO (global variable)
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // replace the data in our buffer with the data of this character 
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // replace the data in our buffer with the data of this character. This is putting data the GPU.
         glBindBuffer(GL_ARRAY_BUFFER, 0);// unbind
 
         glDrawArrays(GL_TRIANGLES, 0, 6); // draw the letter data in our buffer. It is a rectangle, but has a texture attached that is a bitmap of a letter. This is why if you don't have alpha enabled it will just draw blank rectangles.
