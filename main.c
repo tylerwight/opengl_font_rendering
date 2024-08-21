@@ -27,13 +27,13 @@ const char* vertex_shader_source;
 const char* fragment_shader_source;
 GLuint VBO, VAO;
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods); // perform actions based on key presses
 void RenderText(GLuint shaderProgram, const char* text, float x, float y, float scale, float color[3]);
 const char* load_shader_source(const char* file_path);
 GLuint compileShader(GLenum type, const char* source);
 GLuint createShaderProgram();
-GLFWwindow* setup_opengl();
-void load_fonts();
+GLFWwindow* setup_opengl(); 
+void load_fonts(); // load fonts into global Charaters array
 
 
 
@@ -75,7 +75,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
         switch (key) {
             case GLFW_KEY_ESCAPE:
-                printf("test");
+                exit(0);
                 break;
         }
     }
