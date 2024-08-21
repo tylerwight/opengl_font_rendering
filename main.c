@@ -43,7 +43,7 @@ int main(){
     GLuint shaderProgram = createShaderProgram();
     load_fonts();
 
-    const char* text = "A suh dud";
+    const char* text = "a suh dud";
     float x = 55.0f;        // X position of the text
     float y = 700.0f;        // Y position of the text
     float scale = 1.0f;     // Scale factor for the text size
@@ -52,7 +52,7 @@ int main(){
     while (!glfwWindowShouldClose(window)){
         glClear(GL_COLOR_BUFFER_BIT);
         RenderText(shaderProgram, text, x, y, scale, color);
-        RenderText(shaderProgram, text, x, y, scale, color);
+        RenderText(shaderProgram, "a suh", 600.0f, 55.0f, scale, color);
 
         glfwPollEvents();
         glfwSwapBuffers(window);
@@ -232,7 +232,7 @@ GLFWwindow* setup_opengl(){
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glfwSetKeyCallback(window, key_callback);
     return window;
     
@@ -246,7 +246,7 @@ void load_fonts(){
     }
 
     FT_Face face;
-    if (FT_New_Face(ft, "Arial.ttf", 0, &face)) {
+    if (FT_New_Face(ft, "Montserrat.ttf", 0, &face)) {
         fprintf(stderr, "Failed to load font\n");
         exit(EXIT_FAILURE);
     }
