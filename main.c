@@ -2,10 +2,10 @@
 #include <GLFW/glfw3.h>
 #include <ft2build.h>
 #include <cglm/cglm.h>
-#include <cglm/vec3.h> // For vector operations
-#include <cglm/mat4.h> // For matrix operations
-#include <cglm/cam.h>  // For camera operations
-#include <cglm/affine.h> // For affine transformations
+#include <cglm/vec3.h>
+#include <cglm/mat4.h> 
+#include <cglm/cam.h> 
+#include <cglm/affine.h>
 #include FT_FREETYPE_H
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,10 +23,46 @@ typedef struct {
 Character Characters[255];
 int resolution_x;
 int resolution_y;
-
 const char* vertex_shader_source;
 const char* fragment_shader_source;
 GLuint VBO, VAO;
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void RenderText(GLuint shaderProgram, const char* text, float x, float y, float scale, float color[3]);
+const char* load_shader_source(const char* file_path);
+GLuint compileShader(GLenum type, const char* source);
+GLuint createShaderProgram();
+GLFWwindow* setup_opengl();
+void load_fonts();
+
+
+
+int main(){
+    GLFWwindow* window;
+    window = setup_opengl();
+    GLuint shaderProgram = createShaderProgram();
+    load_fonts();
+
+    const char* text = "A suh dud";
+    float x = 55.0f;        // X position of the text
+    float y = 700.0f;        // Y position of the text
+    float scale = 1.0f;     // Scale factor for the text size
+    float color[3] = {0.0f, 1.0f, 1.0f};  // RGB color
+
+    while (!glfwWindowShouldClose(window)){
+        glClear(GL_COLOR_BUFFER_BIT);
+        RenderText(shaderProgram, text, x, y, scale, color);
+        RenderText(shaderProgram, text, x, y, scale, color);
+
+        glfwPollEvents();
+        glfwSwapBuffers(window);
+        
+    }
+
+
+    free((void*)vertex_shader_source);
+    free((void*)fragment_shader_source);
+}
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
     if (action == GLFW_PRESS || action == GLFW_RELEASE) {
@@ -124,8 +160,7 @@ GLuint compileShader(GLenum type, const char* source){
     int success;
     char infoLog[512];
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
+    if (!success){
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
         printf("ERROR::SHADER::COMPILATION_FAILED\n%s\n", infoLog);
     }
@@ -144,8 +179,7 @@ GLuint createShaderProgram(){
     int success;
     char infoLog[512];
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success)
-    {
+    if (!success){
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
         printf("ERROR::PROGRAM::LINKING_FAILED\n%s\n", infoLog);
     }
@@ -205,108 +239,56 @@ GLFWwindow* setup_opengl(){
 }
 
 void load_fonts(){
-  FT_Library ft;
-  if (FT_Init_FreeType(&ft)) {
-      fprintf(stderr, "Could not init FreeType Library\n");
-      exit(EXIT_FAILURE);
-  }
-
-  FT_Face face;
-  if (FT_New_Face(ft, "Arial.ttf", 0, &face)) {
-      fprintf(stderr, "Failed to load font\n");
-      exit(EXIT_FAILURE);
-  }
-
-  FT_Set_Pixel_Sizes(face, 0, 47);  // Set font size to 48 pixels
-
-for (unsigned char c = 0; c < 128; c++) {
-    if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-        fprintf(stderr, "Failed to load Glyph\n");
-        continue;
+    FT_Library ft;
+    if (FT_Init_FreeType(&ft)) {
+        fprintf(stderr, "Could not init FreeType Library\n");
+        exit(EXIT_FAILURE);
     }
-    
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RED,
-        face->glyph->bitmap.width,
-        face->glyph->bitmap.rows,
-        0,
-        GL_RED,
-        GL_UNSIGNED_BYTE,
-        face->glyph->bitmap.buffer
-    );
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    FT_Face face;
+    if (FT_New_Face(ft, "Arial.ttf", 0, &face)) {
+        fprintf(stderr, "Failed to load font\n");
+        exit(EXIT_FAILURE);
+    }
 
-    Character character = {
-        texture,
-        {face->glyph->bitmap.width, face->glyph->bitmap.rows},
-        {face->glyph->bitmap_left, face->glyph->bitmap_top},
-        face->glyph->advance.x
-    };
-    Characters[c] = character;
-    printf("glyh: %c bitmap width: %d, bitmap pitch: %d\n", c, face->glyph->bitmap.width, face->glyph->bitmap.pitch);
-    //printf("loaded glyph %c, size: %d - %d, bearing: %d - %d, advance: %ld\n", c, face->glyph->bitmap.width, face->glyph->bitmap.rows,face->glyph->bitmap_left, face->glyph->bitmap_top, face->glyph->advance.x);
-  }
-  FT_Done_Face(face);
-  FT_Done_FreeType(ft);
-}
+    FT_Set_Pixel_Sizes(face, 0, 48);
 
+    for (unsigned char c = 0; c < 128; c++) {
+        if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
+            fprintf(stderr, "Failed to load Glyph\n");
+            continue;
+        }
+        
+        GLuint texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RED,
+            face->glyph->bitmap.width,
+            face->glyph->bitmap.rows,
+            0,
+            GL_RED,
+            GL_UNSIGNED_BYTE,
+            face->glyph->bitmap.buffer
+        );
 
-int main(){
-  GLFWwindow* window;
-  printf("bing");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  window = setup_opengl();
-  GLuint shaderProgram = createShaderProgram();
-  
-
-
-
-  load_fonts();
-  const char* text = "a b c d e f g h i j k l m n o p q r s t u v w x y z !!@#)(*$)aaaaaaa";
-  float x = 55.0f;        // X position of the text
-  float y = 155.0f;        // Y position of the text
-  float scale = 1.0f;     // Scale factor for the text size
-  float color[3] = {0.0f, 1.0f, 1.0f};  // RGB color (white)
-
-  // vertex_shader_source = load_shader_source("vertex_shader.glsl");
-  // fragment_shader_source = load_shader_source("fragment_shader.glsl");
-  // GLuint shaderProgram = createShaderProgram();
-  // glEnable(GL_BLEND);
-  // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  // glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  // glGenVertexArrays(1, &VAO);
-  // glGenBuffers(1, &VBO);
-
-    
-  // glBindVertexArray(VAO);
-  // glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  // glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-  // glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-  // glEnableVertexAttribArray(0);
-  // glBindBuffer(GL_ARRAY_BUFFER, 0);
-  // glBindVertexArray(0);
-  
-  
-  while (!glfwWindowShouldClose(window)){
-
-    glClear(GL_COLOR_BUFFER_BIT);
-    RenderText(shaderProgram, text, x, y, scale, color);
-
-    glfwSwapBuffers(window);
-    glfwPollEvents();
-  }
-
-
-  free((void*)vertex_shader_source);
-  free((void*)fragment_shader_source);
-  printf("bong");
+        Character character = {
+            texture,
+            {face->glyph->bitmap.width, face->glyph->bitmap.rows},
+            {face->glyph->bitmap_left, face->glyph->bitmap_top},
+            face->glyph->advance.x
+        };
+        Characters[c] = character;
+        //printf("glyh: %c bitmap width: %d, bitmap pitch: %d\n", c, face->glyph->bitmap.width, face->glyph->bitmap.pitch);
+        //printf("loaded glyph %c, size: %d - %d, bearing: %d - %d, advance: %ld\n", c, face->glyph->bitmap.width, face->glyph->bitmap.rows,face->glyph->bitmap_left, face->glyph->bitmap_top, face->glyph->advance.x);
+    }
+    FT_Done_Face(face);
+    FT_Done_FreeType(ft);
 }
