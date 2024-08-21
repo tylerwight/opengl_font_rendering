@@ -1,0 +1,1 @@
+Text rendering with pure C, openGL and freetype 
