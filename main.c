@@ -196,23 +196,23 @@ GLFWwindow* setup_opengl(){
     resolution_y = 768;
     if (!glfwInit()){exit(-1);}
 
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        window = glfwCreateWindow(resolution_x, resolution_y, "Snek", NULL, NULL);
-        if (!window){
-            glfwTerminate();
-            exit(-1);
-        }
+    window = glfwCreateWindow(resolution_x, resolution_y, "font_rendering", NULL, NULL);
+    if (!window){
+        glfwTerminate();
+        exit(-1);
+    }
 
     glfwMakeContextCurrent(window);
 
-        if (glewInit() != GLEW_OK)
-        {
-            printf("Failed to initialize GLEW\n");
-            exit(-1);
-        }
+    if (glewInit() != GLEW_OK)
+    {
+        printf("Failed to initialize GLEW\n");
+        exit(-1);
+    }
 
     
     vertex_shader_source = load_shader_source("vertex_shader.glsl");
@@ -235,7 +235,6 @@ GLFWwindow* setup_opengl(){
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glfwSetKeyCallback(window, key_callback);
     return window;
-    
 }
 
 void load_fonts(){
