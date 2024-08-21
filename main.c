@@ -40,8 +40,8 @@ void load_fonts(); // load fonts into global Charaters array
 int main(){
     GLFWwindow* window;
     window = setup_opengl();
-    GLuint shaderProgram = createShaderProgram();
-    load_fonts();
+    GLuint shaderProgram = createShaderProgram(); // compiles both our shaders (vertex and fragment). Shader sources are global string we loaded in in the setup_openGL(). vertex_shader_source, fragment_ahder_source
+    load_fonts(); // Read a font file, get it's glyph data and bitmaps. Load bitmaps into the GPU as texture, load data + textureID into Characters[] arry (global array)
 
     const char* text = "a suh dud";
     float x = 55.0f;        // X position of the text
@@ -224,14 +224,14 @@ GLFWwindow* setup_opengl(){
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // enable alpha channel so they don't render into squares
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // pretty sure this is naughty, but not sure how to change in freetype to align (yet)
-    glGenVertexArrays(1, &VAO); // generate 1 vertex array on the GPU
-    glGenBuffers(1, &VBO); // generate 1 buffer on the gpu
+    glGenVertexArrays(1, &VAO); // generate 1 vertex array on the GPU for us to use. VAO is a global variable and is just an unsigned int that holds the ID of our vertex array so we can reference it later
+    glGenBuffers(1, &VBO); // generate 1 buffer on the gpu for us to use. VBO is a global variable and is just an unsigned int that holds the ID of our buffer so we can reference it later
 
       
-    glBindVertexArray(VAO); // bind to our one and only vertex array
-    glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind to our one and only buffer
+    glBindVertexArray(VAO); // bind to our one and only vertex array (newly generted above)
+    glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind to our one and only buffer (newly generated above)
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);// fill the buffer with no data (NULL) but choose the size  as 6*4 floats. 6*4 is the size of the vertices data for a character (see renderText function)
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0); // create the first attribute pointer with a stride of 4 floats (move 4 floats to get to next attribute). Offset of 0 
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0); // create the first attribute pointer with a stride of 4 floats (move 4 floats to get to next attribute). Offset of 0 (first attribute of this type is at first address)
     glEnableVertexAttribArray(0); // enable the 0th attribute we defined above
     glBindBuffer(GL_ARRAY_BUFFER, 0);// unbind VBO
     glBindVertexArray(0); // unbind VAO
