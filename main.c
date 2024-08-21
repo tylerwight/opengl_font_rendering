@@ -214,54 +214,55 @@ GLFWwindow* setup_opengl(){
         exit(-1);
     }
 
-    
+    //load shader files into strings
     vertex_shader_source = load_shader_source("vertex_shader.glsl");
     fragment_shader_source = load_shader_source("fragment_shader.glsl");
     
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // enable alpha channel so they don't render into squares
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // pretty sure this is naughty, but not sure how to change in freetype to align (yet)
+    glGenVertexArrays(1, &VAO); // generate 1 vertex array on the GPU
+    glGenBuffers(1, &VBO); // generate 1 buffer on the gpu
 
       
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glfwSetKeyCallback(window, key_callback);
+    glBindVertexArray(VAO); // bind to our one and only vertex array
+    glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind to our one and only buffer
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);// fill the buffer with no data (NULL) but choose the size  as 6*4 floats. 6*4 is the size of the vertices data for a character (see renderText function)
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0); // create the first attribute pointer with a stride of 4 floats (move 4 floats to get to next attribute). Offset of 0 
+    glEnableVertexAttribArray(0); // enable the 0th attribute we defined above
+    glBindBuffer(GL_ARRAY_BUFFER, 0);// unbind VBO
+    glBindVertexArray(0); // unbind VAO
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f); //choose default background color
+    glfwSetKeyCallback(window, key_callback); // set callback function (for detecting keypress, we only use ESC in this program)
     return window;
 }
 
 void load_fonts(){
     FT_Library ft;
-    if (FT_Init_FreeType(&ft)) {
+    if (FT_Init_FreeType(&ft)) { // create an init a Freetype Library
         fprintf(stderr, "Could not init FreeType Library\n");
         exit(EXIT_FAILURE);
     }
 
     FT_Face face;
-    if (FT_New_Face(ft, "Montserrat.ttf", 0, &face)) {
+    if (FT_New_Face(ft, "Montserrat.ttf", 0, &face)) { // load font file into FT_Face object
         fprintf(stderr, "Failed to load font\n");
         exit(EXIT_FAILURE);
     }
 
-    FT_Set_Pixel_Sizes(face, 0, 48);
+    FT_Set_Pixel_Sizes(face, 0, 48); // set font size to 48
 
-    for (unsigned char c = 0; c < 128; c++) {
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
+    //loop through the first 128 ascii characters 
+    for (unsigned char c = 0; c < 128; c++) { 
+        if (FT_Load_Char(face, c, FT_LOAD_RENDER)) { // load ascii char into face
             fprintf(stderr, "Failed to load Glyph\n");
             continue;
         }
         
         GLuint texture;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(
+        glGenTextures(1, &texture); // generate a new texture (empty)
+        glBindTexture(GL_TEXTURE_2D, texture); // bind to the newly generated texture
+        glTexImage2D( // populate the texture with the data below
             GL_TEXTURE_2D,
             0,
             GL_RED,
@@ -270,7 +271,7 @@ void load_fonts(){
             0,
             GL_RED,
             GL_UNSIGNED_BYTE,
-            face->glyph->bitmap.buffer
+            face->glyph->bitmap.buffer // actual bitmap/image data being loaded into the GPU
         );
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -278,13 +279,13 @@ void load_fonts(){
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        Character character = {
-            texture,
-            {face->glyph->bitmap.width, face->glyph->bitmap.rows},
-            {face->glyph->bitmap_left, face->glyph->bitmap_top},
-            face->glyph->advance.x
+        Character character = { //create a struct with all the data
+            texture, // the ID of the texture, used to select correct texture from ones we loaded into the GPU
+            {face->glyph->bitmap.width, face->glyph->bitmap.rows}, // size
+            {face->glyph->bitmap_left, face->glyph->bitmap_top}, //bearing
+            face->glyph->advance.x // advance
         };
-        Characters[c] = character;
+        Characters[c] = character; // add it to the global characters array
         //printf("glyh: %c bitmap width: %d, bitmap pitch: %d\n", c, face->glyph->bitmap.width, face->glyph->bitmap.pitch);
         //printf("loaded glyph %c, size: %d - %d, bearing: %d - %d, advance: %ld\n", c, face->glyph->bitmap.width, face->glyph->bitmap.rows,face->glyph->bitmap_left, face->glyph->bitmap_top, face->glyph->advance.x);
     }
